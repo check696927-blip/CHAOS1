@@ -10,44 +10,59 @@ interface AuthModalProps {
 
 export const AuthModal = ({ open, onClose }: AuthModalProps) => {
   const { login } = useAuth();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: ''
+    email: "",
+    password: "",
+    name: "",
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   if (!open) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ✅ FIXED: async submit with proper await
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setLoading(true);
 
     try {
       let user;
-      if (mode === 'login') {
-        user = loginWithEmail(formData.email, formData.password);
+      if (mode === "login") {
+        user = await loginWithEmail(formData.email, formData.password);
       } else {
-        user = signupWithEmail(formData.email, formData.password, formData.name);
+        user = await signupWithEmail(
+          formData.email,
+          formData.password,
+          formData.name
+        );
       }
 
       if (user) {
         login(user);
         onClose();
       } else {
-        setError('Invalid credentials');
+        setError("Invalid credentials");
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err?.message || "An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    const user = loginWithGoogle();
-    if (user) {
-      login(user);
-      onClose();
+  // ✅ FIXED: async Google login
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await loginWithGoogle();
+      if (result) {
+        onClose();
+      } else {
+        setError("Google login is not available right now.");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Google login failed.");
     }
   };
 
@@ -57,18 +72,87 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
         {/* Header */}
         <div className="bg-gradient-to-r from-chaos-purple/20 to-chaos-red/20 p-6 border-b border-chaos-purple/30 flex items-center justify-between">
           <h2 className="font-chaos text-2xl neon-text-purple">
-            {mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT'}
+            {mode === "login" ? "SIGN IN" : "CREATE ACCOUNT"}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-chaos-purple/20 rounded-lg transition-all">
-            <X className="w-6 h-6" />
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Google Login */}
+        {/* Body */}
+        <div className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded p-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "signup" && (
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((f) => ({ ...f, name: e.target.value }))
+                  }
+                  className="w-full bg-chaos-darker border border-chaos-purple/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-chaos-purple"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData((f) => ({ ...f, email: e.target.value }))
+                }
+                className="w-full bg-chaos-darker border border-chaos-purple/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-chaos-purple"
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData((f) => ({ ...f, password: e.target.value }))
+                }
+                className="w-full bg-chaos-darker border border-chaos-purple/30 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-chaos-purple"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-chaos-purple to-chaos-red py-3 rounded-lg text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {loading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
+            </button>
+          </form>
+
+          <div className="relative flex items-center gap-2">
+            <div className="flex-1 border-t border-chaos-purple/20" />
+            <span className="text-gray-500 text-xs">OR</span>
+            <div className="flex-1 border-t border-chaos-purple/20" />
+          </div>
+
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-3"
+            className="w-full border border-chaos-purple/30 bg-transparent py-3 rounded-lg text-white font-semibold hover:bg-chaos-purple/10 transition-colors flex items-center justify-center gap-3"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -79,89 +163,29 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
             Continue with Google
           </button>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-700"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-chaos-dark px-2 text-gray-500">Or</span>
-            </div>
-          </div>
-
-          {/* Email Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
-              <div>
-                <label className="text-sm text-gray-400 mb-2 block">Name</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Your name"
-                    required
-                    className="w-full bg-chaos-darker border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:border-chaos-purple outline-none"
-                  />
-                </div>
-              </div>
+          <p className="text-center text-sm text-gray-400">
+            {mode === "login" ? (
+              <>
+                Don't have an account?{" "}
+                <button
+                  onClick={() => setMode("signup")}
+                  className="text-chaos-purple hover:underline"
+                >
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button
+                  onClick={() => setMode("login")}
+                  className="text-chaos-purple hover:underline"
+                >
+                  Sign in
+                </button>
+              </>
             )}
-
-            <div>
-              <label className="text-sm text-gray-400 mb-2 block">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="your@email.com"
-                  required
-                  className="w-full bg-chaos-darker border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:border-chaos-purple outline-none"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-400 mb-2 block">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="••••••••"
-                  required
-                  className="w-full bg-chaos-darker border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:border-chaos-purple outline-none"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-chaos-red to-chaos-purple hover:from-chaos-purple hover:to-chaos-pink text-white font-bold py-3 rounded-lg transition-all neon-box-glow"
-            >
-              {mode === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          {/* Toggle Mode */}
-          <div className="text-center text-sm">
-            <span className="text-gray-400">
-              {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
-            </span>
-            {' '}
-            <button
-              onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-              className="text-chaos-purple hover:text-chaos-red font-bold transition-colors"
-            >
-              {mode === 'login' ? 'Sign up' : 'Sign in'}
-            </button>
-          </div>
+          </p>
         </div>
       </div>
     </div>
