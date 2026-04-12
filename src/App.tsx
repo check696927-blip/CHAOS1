@@ -20,19 +20,26 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Success from "./pages/Success";
 
+// ✅ SAFE WRAPPER (prevents Zustand crash issues)
 function CartNotificationWrapper() {
-  const { show, itemName, quantity, itemImage } = useCartStore(selectNotification);
-  const hideNotification = useCartStore((s) => s.hideNotification);
+  try {
+    const { show, itemName, quantity, itemImage } =
+      useCartStore(selectNotification);
+    const hideNotification = useCartStore((s) => s.hideNotification);
 
-  return (
-    <AddToCartNotification
-      show={show}
-      itemName={itemName}
-      quantity={quantity}
-      itemImage={itemImage}
-      onHide={hideNotification}
-    />
-  );
+    return (
+      <AddToCartNotification
+        show={show}
+        itemName={itemName}
+        quantity={quantity}
+        itemImage={itemImage}
+        onHide={hideNotification}
+      />
+    );
+  } catch (e) {
+    console.error("CartNotification error:", e);
+    return null;
+  }
 }
 
 export default function App() {
