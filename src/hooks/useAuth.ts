@@ -1,23 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { safeUser } from "@/lib/userSafe";
 import type { User } from "@/types/user";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const normalizeUser = (u: any): User | null => {
-    if (!u) return null;
-
-    return {
-      id: u.id,
-      email: u.email ?? "",
-      name: u.user_metadata?.name ?? u.email ?? "User",
-      provider: "supabase",
-      addresses: [],
-      createdAt: u.created_at ?? new Date().toISOString(),
-    };
-  };
 
   useEffect(() => {
     if (!supabase) {
@@ -29,13 +17,19 @@ export const useAuth = () => {
       try {
         const { data, error } = await supabase.auth.getUser();
 
-        if (error) {
+        if (error || !data?.user) {
           setUser(null);
         } else {
-          setUser(normalizeUser(data.user));
+          setUser(
+            safeUser({
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.user_metadata?.name,
+              provider: data.user.app_metadata?.provider,
+            })
+          );
         }
-      } catch (e) {
-        console.error(e);
+      } catch {
         setUser(null);
       }
 
@@ -46,7 +40,16 @@ export const useAuth = () => {
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(normalizeUser(session?.user));
+        setUser(
+          session?.user
+            ? safeUser({
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.name,
+                provider: session.user.app_metadata?.provider,
+              })
+            : null
+        );
       }
     );
 
@@ -55,16 +58,20 @@ export const useAuth = () => {
 
   const isAuthenticated = !!user;
 
-  const login = (u: User) => setUser(u);
-
+  // unified logout name (CRITICAL FIX)
   const signout = async () => {
     try {
       await supabase?.auth.signOut();
-    } finally {
       setUser(null);
-      window.location.href = "/";
+    } catch (e) {
+      console.error("Signout error:", e);
     }
   };
 
-  return { user, loading, isAuthenticated, login, signout };
+  return {
+    user,
+    loading,
+    isAuthenticated,
+    signout,
+  };
 };
