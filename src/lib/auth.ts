@@ -1,41 +1,8 @@
 import { supabase } from "@/lib/supabaseClient";
-import type { User } from "@/types/user";
 
-const mapUser = (u: any): User => ({
-  id: u.id,
-  email: u.email,
-  name: u.user_metadata?.name ?? u.email,
-  provider: "supabase",
-  addresses: [],
-  createdAt: u.created_at,
-});
-
-export const getCurrentUser = async () => {
-  if (!supabase) return null;
-
-  const { data } = await supabase.auth.getUser();
-  return data?.user ? mapUser(data.user) : null;
-};
-
-export const logout = async () => {
-  await supabase?.auth.signOut();
-  window.location.href = "/";
-};
-
-export const loginWithGoogle = async () => {
-  if (!supabase) return null;
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin },
-  });
-
-  if (error) throw error;
-  return true;
-};
-
+// LOGIN EMAIL
 export const loginWithEmail = async (email: string, password: string) => {
-  if (!supabase) throw new Error("No backend");
+  if (!supabase) throw new Error("Supabase not initialized");
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -43,5 +10,46 @@ export const loginWithEmail = async (email: string, password: string) => {
   });
 
   if (error) throw error;
-  return mapUser(data.user);
+  return data.user;
+};
+
+// SIGNUP EMAIL (FIXED EXPORT)
+export const signupWithEmail = async (
+  email: string,
+  password: string,
+  name: string
+) => {
+  if (!supabase) throw new Error("Supabase not initialized");
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name },
+    },
+  });
+
+  if (error) throw error;
+  return data.user;
+};
+
+// GOOGLE LOGIN
+export const loginWithGoogle = async () => {
+  if (!supabase) return null;
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin,
+    },
+  });
+
+  if (error) throw error;
+  return true;
+};
+
+// LOGOUT (optional compatibility)
+export const logout = async () => {
+  await supabase?.auth.signOut();
+  window.location.href = "/";
 };
