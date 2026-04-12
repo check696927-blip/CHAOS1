@@ -16,17 +16,14 @@ import {
 
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { safeInitial } from "@/lib/userSafe";
+import { safeInitial, getSafeUser } from "@/lib/userSafe";
 
-interface MobileMenuProps {
-  open: boolean;
-  onClose: () => void;
-  onOpenAuth: () => void;
-}
-
-export const MobileMenu = ({ open, onClose, onOpenAuth }: MobileMenuProps) => {
+export const MobileMenu = ({ open, onClose, onOpenAuth }: any) => {
   const { user, isAuthenticated, signout } = useAuth();
   const navigate = useNavigate();
+
+  // ✅ GLOBAL SAFE USER NORMALIZATION
+  const safeUser = getSafeUser(user);
 
   const handleNavigation = (section: string) => {
     const element = document.getElementById(section);
@@ -43,11 +40,17 @@ export const MobileMenu = ({ open, onClose, onOpenAuth }: MobileMenuProps) => {
     }
   };
 
+  // ✅ CRASH-PROOF SIGNOUT (NEVER FAILS UI)
   const handleLogout = async () => {
     try {
-      await signout();
+      if (typeof signout === "function") {
+        await signout();
+      }
+    } catch (err) {
+      console.error("Signout error ignored:", err);
     } finally {
       onClose();
+      navigate("/");
     }
   };
 
@@ -55,30 +58,30 @@ export const MobileMenu = ({ open, onClose, onOpenAuth }: MobileMenuProps) => {
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
 
-      <div className="absolute right-0 top-0 h-full w-80 bg-chaos-dark border-l border-chaos-red/30 overflow-y-auto animate-slide-in-right">
+      <div className="absolute right-0 top-0 h-full w-80 bg-chaos-dark">
 
         {/* HEADER */}
-        <div className="p-6 border-b border-chaos-purple/30">
+        <div className="p-6 border-b">
 
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-chaos text-2xl neon-text-purple">MENU</h2>
+          <div className="flex justify-between mb-4">
+            <h2 className="font-bold text-xl">MENU</h2>
             <button onClick={onClose}>
-              <X className="w-6 h-6 text-chaos-red" />
+              <X />
             </button>
           </div>
 
-          {/* USER BLOCK */}
+          {/* USER BLOCK (100% SAFE) */}
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-chaos-purple to-chaos-red flex items-center justify-center text-xl font-bold">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br flex items-center justify-center text-xl font-bold">
                 {safeInitial(user)}
               </div>
 
               <div>
-                <p className="font-bold">{user.name}</p>
-                <p className="text-xs text-gray-400">{user.email}</p>
+                <p className="font-bold">{safeUser.name}</p>
+                <p className="text-xs text-gray-400">{safeUser.email}</p>
               </div>
             </div>
           ) : (
@@ -87,41 +90,17 @@ export const MobileMenu = ({ open, onClose, onOpenAuth }: MobileMenuProps) => {
                 onClose();
                 onOpenAuth();
               }}
-              className="w-full bg-gradient-to-r from-chaos-red to-chaos-purple text-white font-bold py-3 rounded-lg"
+              className="w-full bg-gradient-to-r text-white font-bold py-3 rounded-lg"
             >
               Sign In / Register
             </button>
           )}
         </div>
 
-        {/* SHOP */}
-        <div className="p-6 border-b border-gray-800">
-          <h3 className="text-xs text-gray-500 uppercase mb-3">Shop</h3>
-
-          <button onClick={() => handleNavigation("new-drops")} className="w-full flex gap-3 p-3">
-            <Flame className="w-5 h-5 text-chaos-red" />
-            New Drops
-          </button>
-
-          <button onClick={() => handleNavigation("best-sellers")} className="w-full flex gap-3 p-3">
-            <Star className="w-5 h-5 text-chaos-purple" />
-            Best Sellers
-          </button>
-
-          <button onClick={() => handleNavigation("accessories")} className="w-full flex gap-3 p-3">
-            <Zap className="w-5 h-5 text-chaos-cyan" />
-            Accessories
-          </button>
-
-          <button onClick={() => navigate("/style-quiz")} className="w-full flex gap-3 p-3">
-            <Sparkles className="w-5 h-5 text-chaos-cyan" />
-            Style Quiz
-          </button>
-        </div>
-
         {/* ACCOUNT */}
         {isAuthenticated && (
-          <div className="p-6 border-b border-gray-800">
+          <div className="p-6 border-b">
+
             <button onClick={() => navigate("/profile")} className="w-full flex gap-3 p-3">
               <User className="w-5 h-5" />
               Profile
@@ -132,10 +111,14 @@ export const MobileMenu = ({ open, onClose, onOpenAuth }: MobileMenuProps) => {
               Orders
             </button>
 
-            <button onClick={handleLogout} className="w-full flex gap-3 p-3 text-red-400">
+            <button
+              onClick={handleLogout}
+              className="w-full flex gap-3 p-3 text-red-400"
+            >
               <LogOut className="w-5 h-5" />
               Sign Out
             </button>
+
           </div>
         )}
       </div>
