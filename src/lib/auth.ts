@@ -1,43 +1,47 @@
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "./supabase";
 
-// LOGIN EMAIL
+/**
+ * LOGIN
+ */
 export const loginWithEmail = async (email: string, password: string) => {
-  if (!supabase) throw new Error("Supabase not initialized");
-
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) throw error;
+
   return data.user;
 };
 
-// SIGNUP EMAIL (FIXED EXPORT)
+/**
+ * SIGNUP (FIXED — NOW MATCHES YOUR MODAL)
+ */
 export const signupWithEmail = async (
   email: string,
   password: string,
-  name: string
+  name?: string
 ) => {
-  if (!supabase) throw new Error("Supabase not initialized");
-
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { name },
+      data: {
+        full_name: name ?? "",
+      },
     },
   });
 
   if (error) throw error;
+
   return data.user;
 };
 
-// GOOGLE LOGIN
+/**
+ * GOOGLE LOGIN
+ */
 export const loginWithGoogle = async () => {
-  if (!supabase) return null;
-
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: window.location.origin,
@@ -45,11 +49,14 @@ export const loginWithGoogle = async () => {
   });
 
   if (error) throw error;
-  return true;
+
+  return data;
 };
 
-// LOGOUT (optional compatibility)
-export const logout = async () => {
-  await supabase?.auth.signOut();
-  window.location.href = "/";
+/**
+ * SIGNOUT
+ */
+export const signout = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 };
