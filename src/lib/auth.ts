@@ -1,47 +1,35 @@
 import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@/types/user";
 
-// =========================
-// LOGIN
-// =========================
-export const loginWithEmail = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+const mapUser = (u: any): User => ({
+  id: u.id,
+  email: u.email,
+  name: u.user_metadata?.name || u.user_metadata?.full_name || u.email,
+  provider: "supabase",
+  addresses: [],
+  createdAt: u.created_at,
+});
 
-  if (error) throw error;
+export const getCurrentUser = async (): Promise<User | null> => {
+  if (!supabase) return null;
 
-  return data.user;
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data?.user) return null;
+
+  return mapUser(data.user);
 };
 
-// =========================
-// SIGNUP (THIS FIXES YOUR ERROR)
-// =========================
-export const signupWithEmail = async (
-  email: string,
-  password: string,
-  name?: string
-) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name || "",
-      },
-    },
-  });
+export const logout = async (): Promise<void> => {
+  if (!supabase) return;
 
-  if (error) throw error;
-
-  return data.user;
+  await supabase.auth.signOut();
+  window.location.href = "/";
 };
 
-// =========================
-// GOOGLE LOGIN
-// =========================
-export const loginWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+export const loginWithGoogle = async (): Promise<boolean> => {
+  if (!supabase) throw new Error("Supabase not initialized");
+
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: window.location.origin,
@@ -49,6 +37,48 @@ export const loginWithGoogle = async () => {
   });
 
   if (error) throw error;
+  return true;
+};
 
-  return data;
+export const loginWithEmail = async (
+  email: string,
+  password: string
+): Promise<User> => {
+  if (!supabase) throw new Error("Supabase not initialized");
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) throw error;
+  if (!data?.user) throw new Error("Login failed");
+
+  return mapUser(data.user);
+};
+
+// ✅ THIS IS THE MISSING FUNCTION (FIXES YOUR BUILD ERROR)
+export const signupWithEmail = async (
+  email: string,
+  password: string,
+  name?: string
+): Promise<User> => {
+  if (!supabase) throw new Error("Supabase not initialized");
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name: name || email,
+      },
+    },
+  });
+
+  if (error) throw error;
+
+  const user = data?.user || data?.session?.user;
+  if (!user) throw new Error("Signup failed - no user returned");
+
+  return mapUser(user);
 };
