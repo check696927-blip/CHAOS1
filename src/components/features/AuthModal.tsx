@@ -46,15 +46,18 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
       }
 
       if (user) {
-        login({
+        // 🔒 SAFE NORMALIZATION (prevents Supabase shape crashes)
+        const safeUser = {
           ...user,
           name:
             formData.name ||
             (user as any)?.user_metadata?.name ||
             (user as any)?.user_metadata?.full_name ||
+            (user as any)?.name ||
             "",
-        });
+        };
 
+        login(safeUser);
         onClose();
       } else {
         setError("Authentication failed");
