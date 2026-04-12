@@ -1,71 +1,78 @@
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@/types/user";
 
-const mapUser = (u: any): User => ({
-  id: u.id,
-  email: u.email,
-  name: u.user_metadata?.name ?? u.email,
+// Internal mapper — inline user construction (no external dependency needed)
+const mapToUser = (u: any): User => ({
+  id: u?.id ?? "",
+  email: u?.email ?? "",
+  name:
+    u?.user_metadata?.name ??
+    u?.user_metadata?.full_name ??
+    u?.email ??
+    "Guest",
   provider: "supabase",
   addresses: [],
-  createdAt: u.created_at,
+  createdAt: u?.created_at ?? new Date().toISOString(),
 });
 
-export const getCurrentUser = async () => {
-  if (!supabase) return null;
+export const useAuth = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data } = await supabase.auth.getUser();
-  return data?.user ? mapUser(data.user) : null;
-};
+  useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
 
-export const logout = async () => {
-  await supabase?.auth.signOut();
-  window.location.href = "/";
-};
+    const init = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
 
-export const loginWithGoogle = async () => {
-  if (!supabase) return null;
+        if (error || !data?.user) {
+          setUser(null);
+        } else {
+          setUser(mapToUser(data.user));
+        }
+      } catch {
+        setUser(null);
+      }
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin },
-  });
+      setLoading(false);
+    };
 
-  if (error) throw error;
-  return true;
-};
+    init();
 
-export const loginWithEmail = async (email: string, password: string) => {
-  if (!supabase) throw new Error("No backend");
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ? mapToUser(session.user) : null);
+      }
+    );
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-  if (error) throw error;
-  return mapUser(data.user);
-};
+  const isAuthenticated = !!user;
 
-/**
- * ✅ FIX: this was missing and is REQUIRED by AuthModal.tsx
- */
-export const signupWithEmail = async (
-  email: string,
-  password: string,
-  name?: string
-) => {
-  if (!supabase) throw new Error("No backend");
+  // Exposed so AuthModal can immediately reflect the logged-in user
+  // without waiting for the next onAuthStateChange tick
+  const login = (u: User) => setUser(u);
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name: name ?? email,
-      },
-    },
-  });
+  const signout = async () => {
+    try {
+      await supabase?.auth.signOut();
+      setUser(null);
+    } catch (e) {
+      console.error("Signout error:", e);
+    }
+  };
 
-  if (error) throw error;
-  return data.user ? mapUser(data.user) : null;
+  return {
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    signout,
+  };
 };
