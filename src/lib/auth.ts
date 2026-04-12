@@ -23,7 +23,7 @@ export const logout = async () => {
 };
 
 export const loginWithGoogle = async () => {
-  if (!supabase) return null;
+  if (!supabase) throw new Error("No backend");
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -43,11 +43,11 @@ export const loginWithEmail = async (email: string, password: string) => {
   });
 
   if (error) throw error;
-  return mapUser(data.user);
+  return data?.user ? mapUser(data.user) : null;
 };
 
 /**
- * ✅ FIX: this was missing and is REQUIRED by AuthModal.tsx
+ * ✅ THIS IS THE MISSING EXPORT CAUSING YOUR BUILD FAILURE
  */
 export const signupWithEmail = async (
   email: string,
@@ -67,5 +67,6 @@ export const signupWithEmail = async (
   });
 
   if (error) throw error;
-  return data.user ? mapUser(data.user) : null;
+
+  return data?.user ? mapUser(data.user) : null;
 };
