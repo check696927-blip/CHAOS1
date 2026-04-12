@@ -47,7 +47,7 @@ export const loginWithEmail = async (email: string, password: string) => {
 };
 
 /**
- * ✅ THIS IS THE MISSING EXPORT CAUSING YOUR BUILD FAILURE
+ * ✅ CRITICAL: REQUIRED EXPORT (fixes your build)
  */
 export const signupWithEmail = async (
   email: string,
