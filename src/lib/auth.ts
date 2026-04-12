@@ -1,10 +1,8 @@
-// src/lib/auth.ts
-
 import { supabase } from "@/lib/supabaseClient";
 
-// ========================
-// LOGIN WITH EMAIL
-// ========================
+// =========================
+// LOGIN
+// =========================
 export const loginWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -16,9 +14,9 @@ export const loginWithEmail = async (email: string, password: string) => {
   return data.user;
 };
 
-// ========================
-// SIGNUP WITH EMAIL (FIX FOR YOUR BUILD ERROR)
-// ========================
+// =========================
+// SIGNUP (THIS FIXES YOUR ERROR)
+// =========================
 export const signupWithEmail = async (
   email: string,
   password: string,
@@ -39,9 +37,9 @@ export const signupWithEmail = async (
   return data.user;
 };
 
-// ========================
+// =========================
 // GOOGLE LOGIN
-// ========================
+// =========================
 export const loginWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
