@@ -1,84 +1,78 @@
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@/types/user";
 
-const mapUser = (u: any): User => ({
-  id: u.id,
-  email: u.email,
-  name: u.user_metadata?.name || u.user_metadata?.full_name || u.email,
+// Internal mapper — inline user construction (no external dependency needed)
+const mapToUser = (u: any): User => ({
+  id: u?.id ?? "",
+  email: u?.email ?? "",
+  name:
+    u?.user_metadata?.name ??
+    u?.user_metadata?.full_name ??
+    u?.email ??
+    "Guest",
   provider: "supabase",
   addresses: [],
-  createdAt: u.created_at,
+  createdAt: u?.created_at ?? new Date().toISOString(),
 });
 
-export const getCurrentUser = async (): Promise<User | null> => {
-  if (!supabase) return null;
+export const useAuth = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data?.user) return null;
+  useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
 
-  return mapUser(data.user);
-};
+    const init = async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
 
-export const logout = async (): Promise<void> => {
-  if (!supabase) return;
+        if (error || !data?.user) {
+          setUser(null);
+        } else {
+          setUser(mapToUser(data.user));
+        }
+      } catch {
+        setUser(null);
+      }
 
-  await supabase.auth.signOut();
-  window.location.href = "/";
-};
+      setLoading(false);
+    };
 
-export const loginWithGoogle = async (): Promise<boolean> => {
-  if (!supabase) throw new Error("Supabase not initialized");
+    init();
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: window.location.origin,
-    },
-  });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ? mapToUser(session.user) : null);
+      }
+    );
 
-  if (error) throw error;
-  return true;
-};
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-export const loginWithEmail = async (
-  email: string,
-  password: string
-): Promise<User> => {
-  if (!supabase) throw new Error("Supabase not initialized");
+  const isAuthenticated = !!user;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  // Exposed so AuthModal can immediately reflect the logged-in user
+  // without waiting for the next onAuthStateChange tick
+  const login = (u: User) => setUser(u);
 
-  if (error) throw error;
-  if (!data?.user) throw new Error("Login failed");
+  const signout = async () => {
+    try {
+      await supabase?.auth.signOut();
+      setUser(null);
+    } catch (e) {
+      console.error("Signout error:", e);
+    }
+  };
 
-  return mapUser(data.user);
-};
-
-// ✅ THIS IS THE MISSING FUNCTION (FIXES YOUR BUILD ERROR)
-export const signupWithEmail = async (
-  email: string,
-  password: string,
-  name?: string
-): Promise<User> => {
-  if (!supabase) throw new Error("Supabase not initialized");
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name: name || email,
-      },
-    },
-  });
-
-  if (error) throw error;
-
-  const user = data?.user || data?.session?.user;
-  if (!user) throw new Error("Signup failed - no user returned");
-
-  return mapUser(user);
+  return {
+    user,
+    loading,
+    isAuthenticated,
+    login,
+    signout,
+  };
 };
