@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { safeUser } from "@/lib/userSafe";
 import type { User } from "@/types/user";
+
+// Internal mapper — inline user construction (no external dependency needed)
+const mapToUser = (u: any): User => ({
+  id: u?.id ?? "",
+  email: u?.email ?? "",
+  name:
+    u?.user_metadata?.name ??
+    u?.user_metadata?.full_name ??
+    u?.email ??
+    "Guest",
+  provider: "supabase",
+  addresses: [],
+  createdAt: u?.created_at ?? new Date().toISOString(),
+});
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -20,14 +33,7 @@ export const useAuth = () => {
         if (error || !data?.user) {
           setUser(null);
         } else {
-          setUser(
-            safeUser({
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.user_metadata?.name,
-              provider: data.user.app_metadata?.provider,
-            })
-          );
+          setUser(mapToUser(data.user));
         }
       } catch {
         setUser(null);
@@ -40,16 +46,7 @@ export const useAuth = () => {
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(
-          session?.user
-            ? safeUser({
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.name,
-                provider: session.user.app_metadata?.provider,
-              })
-            : null
-        );
+        setUser(session?.user ? mapToUser(session.user) : null);
       }
     );
 
@@ -58,7 +55,10 @@ export const useAuth = () => {
 
   const isAuthenticated = !!user;
 
-  // unified logout name (CRITICAL FIX)
+  // Exposed so AuthModal can immediately reflect the logged-in user
+  // without waiting for the next onAuthStateChange tick
+  const login = (u: User) => setUser(u);
+
   const signout = async () => {
     try {
       await supabase?.auth.signOut();
@@ -72,6 +72,7 @@ export const useAuth = () => {
     user,
     loading,
     isAuthenticated,
+    login,
     signout,
   };
 };
