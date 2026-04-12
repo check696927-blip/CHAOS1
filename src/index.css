@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 3%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 340 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 280 100% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 300 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 340 100% 50%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Neon Glow Effects */
+.neon-text-red {
+  color: #FF0055;
+  text-shadow: 
+    0 0 10px #FF0055,
+    0 0 20px #FF0055,
+    0 0 30px #FF0055,
+    0 0 40px #9D00FF;
+}
+
+.neon-text-purple {
+  color: #9D00FF;
+  text-shadow: 
+    0 0 10px #9D00FF,
+    0 0 20px #9D00FF,
+    0 0 30px #9D00FF,
+    0 0 40px #FF00FF;
+}
+
+.neon-text-cyan {
+  color: #00FFFF;
+  text-shadow: 
+    0 0 10px #00FFFF,
+    0 0 20px #00FFFF,
+    0 0 30px #00FFFF,
+    0 0 40px #00FFFF;
+}
+
+.neon-border-red {
+  border: 2px solid #FF0055;
+  box-shadow: 
+    0 0 10px #FF0055,
+    0 0 20px #FF0055,
+    inset 0 0 10px rgba(255, 0, 85, 0.3);
+}
+
+.neon-border-purple {
+  border: 2px solid #9D00FF;
+  box-shadow: 
+    0 0 10px #9D00FF,
+    0 0 20px #9D00FF,
+    inset 0 0 10px rgba(157, 0, 255, 0.3);
+}
+
+.neon-box-glow {
+  box-shadow: 
+    0 0 20px rgba(255, 0, 85, 0.4),
+    0 0 40px rgba(157, 0, 255, 0.3),
+    0 0 60px rgba(255, 0, 255, 0.2);
+}
+
+/* Dripping SVG animation */
+.drip-svg {
+  animation: drip 1.5s ease-in infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #FF0055, #9D00FF);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9D00FF, #FF00FF);
+}
+
+/* Announcement Bar Slow Slide */
+@keyframes slide-announcement-slow {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-slide-announcement-slow {
+  animation: slide-announcement-slow 40s linear infinite;
+}
+
+/* Drip Animation */
+@keyframes drip {
+  0% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(10px); }
+}
+
+.animate-drip {
+  animation: drip 1.5s ease-in infinite;
+}
+
+/* Slide In Right Animation */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+button, a {
+  transition: all 0.3s ease;
+}
+
+/* Holographic Glow Effects */
+@keyframes holographic-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 15px rgba(157, 0, 255, 0.6),
+      0 0 30px rgba(255, 0, 85, 0.4),
+      0 0 45px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(255, 0, 85, 0.7),
+      0 0 40px rgba(0, 255, 255, 0.5),
+      0 0 60px rgba(157, 0, 255, 0.4);
+  }
+}
+
+@keyframes holographic-border {
+  0% {
+    border-color: rgba(157, 0, 255, 0.8);
+  }
+  33% {
+    border-color: rgba(255, 0, 85, 0.8);
+  }
+  66% {
+    border-color: rgba(0, 255, 255, 0.8);
+  }
+  100% {
+    border-color: rgba(157, 0, 255, 0.8);
+  }
+}
+
+.holographic-hover {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.holographic-hover:hover {
+  transform: translateY(-2px);
+  animation: holographic-glow 1.5s ease-in-out infinite;
+}
+
+.holographic-button {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.holographic-button:hover {
+  filter: brightness(1.2);
+  animation: holographic-glow 1.5s ease-in-out infinite;
+}
+
+.holographic-button:active {
+  transform: scale(0.97);
+}
+
+.holographic-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.holographic-card:hover {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.holographic-card:hover::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(45deg, #9D00FF, #FF0055, #00FFFF, #9D00FF);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  animation: holographic-border 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Custom range slider */
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF0055, #9D00FF);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF0055, #9D00FF);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+}
