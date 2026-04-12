@@ -1,8 +1,10 @@
-import { supabase } from "./supabase";
+// src/lib/auth.ts
 
-/**
- * LOGIN
- */
+import { supabase } from "@/lib/supabaseClient";
+
+// ========================
+// LOGIN WITH EMAIL
+// ========================
 export const loginWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -14,9 +16,9 @@ export const loginWithEmail = async (email: string, password: string) => {
   return data.user;
 };
 
-/**
- * SIGNUP (FIXED — NOW MATCHES YOUR MODAL)
- */
+// ========================
+// SIGNUP WITH EMAIL (FIX FOR YOUR BUILD ERROR)
+// ========================
 export const signupWithEmail = async (
   email: string,
   password: string,
@@ -27,7 +29,7 @@ export const signupWithEmail = async (
     password,
     options: {
       data: {
-        full_name: name ?? "",
+        full_name: name || "",
       },
     },
   });
@@ -37,9 +39,9 @@ export const signupWithEmail = async (
   return data.user;
 };
 
-/**
- * GOOGLE LOGIN
- */
+// ========================
+// GOOGLE LOGIN
+// ========================
 export const loginWithGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -51,12 +53,4 @@ export const loginWithGoogle = async () => {
   if (error) throw error;
 
   return data;
-};
-
-/**
- * SIGNOUT
- */
-export const signout = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
 };
