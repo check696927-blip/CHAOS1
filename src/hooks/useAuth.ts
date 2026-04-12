@@ -1,51 +1,70 @@
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import type { User } from "@/types/user";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const normalizeUser = (u: any): User | null => {
+    if (!u) return null;
+
+    return {
+      id: u.id,
+      email: u.email ?? "",
+      name: u.user_metadata?.name ?? u.email ?? "User",
+      provider: "supabase",
+      addresses: [],
+      createdAt: u.created_at ?? new Date().toISOString(),
+    };
+  };
 
   useEffect(() => {
-    // Guard: if supabase is not initialised, bail out safely
     if (!supabase) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
-    const run = async () => {
+    const init = async () => {
       try {
-        const { data, error } = await supabase!.auth.getUser()
+        const { data, error } = await supabase.auth.getUser();
+
         if (error) {
-          console.error("Auth error:", error)
-          setUser(null)
+          setUser(null);
         } else {
-          setUser(data?.user ?? null)
+          setUser(normalizeUser(data.user));
         }
       } catch (e) {
-        console.error("Auth crash prevented:", e)
-        setUser(null)
+        console.error(e);
+        setUser(null);
       }
-      setLoading(false)
-    }
 
-    run()
+      setLoading(false);
+    };
 
-    // ✅ onAuthStateChange is now INSIDE the null guard
-    const { data: listener } = supabase!.auth.onAuthStateChange(
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setUser(session?.user ?? null)
+        setUser(normalizeUser(session?.user));
       }
-    )
+    );
 
-    return () => listener.subscription.unsubscribe()
-  }, [])
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-  // ✅ Expose isAuthenticated and a no-op login for compatibility
-  const isAuthenticated = !!user
+  const isAuthenticated = !!user;
 
-  const login = (userData: any) => {
-    setUser(userData)
-  }
+  const login = (u: User) => setUser(u);
 
-  return { user, loading, isAuthenticated, login }
-}
+  const signout = async () => {
+    try {
+      await supabase?.auth.signOut();
+    } finally {
+      setUser(null);
+      window.location.href = "/";
+    }
+  };
+
+  return { user, loading, isAuthenticated, login, signout };
+};
