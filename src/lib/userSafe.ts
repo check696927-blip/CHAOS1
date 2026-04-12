@@ -1,29 +1,45 @@
-import type { User } from "@/types/user";
+export type SafeUser = {
+  name: string;
+  email: string;
+  addresses: any[];
+  createdAt: string;
+  provider: string;
+};
 
-export const emptyUser = (): User => ({
-  id: "",
-  email: "",
+const DEFAULT_USER: SafeUser = {
   name: "Guest",
-  provider: "guest",
+  email: "",
   addresses: [],
-  createdAt: new Date(),
-});
+  createdAt: new Date().toISOString(),
+  provider: "unknown",
+};
 
-export const safeUser = (user: any): User => {
-  if (!user) return emptyUser();
+/**
+ * Always returns a fully safe user object (never null/undefined)
+ */
+export const getSafeUser = (user: any): SafeUser => {
+  if (!user) return DEFAULT_USER;
 
   return {
-    id: user.id ?? "",
-    email: user.email ?? "",
-    name: user.name ?? "User",
-    provider: user.provider ?? "unknown",
-    addresses: Array.isArray(user.addresses) ? user.addresses : [],
-    createdAt: user.createdAt ? new Date(user.createdAt) : new Date(),
+    name: user?.name ?? "Guest",
+    email: user?.email ?? "",
+    addresses: Array.isArray(user?.addresses) ? user.addresses : [],
+    createdAt: user?.createdAt ?? new Date().toISOString(),
+    provider: user?.provider ?? "unknown",
   };
 };
 
-export const safeString = (v: any, fallback = "") =>
-  typeof v === "string" ? v : fallback;
+/**
+ * Safe avatar initial generator
+ */
+export const safeInitial = (user: any): string => {
+  const name = user?.name ?? "U";
+  return name.charAt(0).toUpperCase();
+};
 
-export const safeNumber = (v: any, fallback = 0) =>
-  typeof v === "number" ? v : fallback;
+/**
+ * Safe address count
+ */
+export const safeAddressCount = (user: any): number => {
+  return Array.isArray(user?.addresses) ? user.addresses.length : 0;
+};
