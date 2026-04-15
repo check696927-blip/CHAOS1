@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@/types/user";
 
-// Internal mapper — inline user construction (no external dependency needed)
 const mapToUser = (u: any): User => ({
   id: u?.id ?? "",
   email: u?.email ?? "",
@@ -26,10 +25,9 @@ export const useAuth = () => {
       return;
     }
 
-    const init = async () => {
+    const run = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser();
-
+        const { data, error } = await supabase!.auth.getUser();
         if (error || !data?.user) {
           setUser(null);
         } else {
@@ -38,13 +36,12 @@ export const useAuth = () => {
       } catch {
         setUser(null);
       }
-
       setLoading(false);
     };
 
-    init();
+    run();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
+    const { data: listener } = supabase!.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ? mapToUser(session.user) : null);
       }
@@ -55,9 +52,8 @@ export const useAuth = () => {
 
   const isAuthenticated = !!user;
 
-  // Exposed so AuthModal can immediately reflect the logged-in user
-  // without waiting for the next onAuthStateChange tick
-  const login = (u: User) => setUser(u);
+  // Allows AuthModal to immediately reflect login without waiting for onAuthStateChange
+  const login = (userData: User) => setUser(userData);
 
   const signout = async () => {
     try {
@@ -68,11 +64,5 @@ export const useAuth = () => {
     }
   };
 
-  return {
-    user,
-    loading,
-    isAuthenticated,
-    login,
-    signout,
-  };
+  return { user, loading, isAuthenticated, login, signout };
 };
