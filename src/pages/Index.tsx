@@ -114,24 +114,24 @@ const Index = () => {
             <h3 className="font-chaos text-xl neon-text-red">CHAOS</h3>
           </div>
           <div className="flex justify-center items-center gap-6 my-4 flex-wrap">
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.instagram.com/chaosmerch1?igsh=cmg1NTlhOGJoNGo4" target="_blank" rel="noopener noreferrer"
                className="text-white text-xl transition-all duration-300 hover:text-pink-500 hover:drop-shadow-[0_0_10px_#ff00ff]">
               <i className="fab fa-instagram"></i>
             </a>
 
-            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.tiktok.com/@chaos.merch?_r=1&_t=ZS-95ViTQnvc8t" target="_blank" rel="noopener noreferrer"
                className="text-white text-xl transition-all duration-300 hover:text-white hover:drop-shadow-[0_0_10px_#00f2ea]">
               <i className="fab fa-tiktok"></i>
             </a>
 
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.facebook.com/share/1CceDzksA3/" target="_blank" rel="noopener noreferrer"
                className="text-white text-xl transition-all duration-300 hover:text-blue-500 hover:drop-shadow-[0_0_10px_#1877f2]">
               <i className="fab fa-facebook"></i>
             </a>
 
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
+            <a href="https://x.com/CHAOS158761" target="_blank" rel="noopener noreferrer"
                className="text-white text-xl transition-all duration-300 hover:text-white hover:drop-shadow-[0_0_10px_#1da1f2]">
-              <i className="fab fa-twitter"></i>
+              <i className="fab fa-x-twitter"></i>
             </a>
           </div>
           <p className="text-gray-500 text-sm font-neon tracking-wider">
