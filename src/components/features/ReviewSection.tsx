@@ -1,53 +1,19 @@
-import { Star, ThumbsUp, Image as ImageIcon, Video } from "lucide-react";
+import { Star, ThumbsUp } from "lucide-react";
 import { useState } from "react";
-
-interface Review {
-  id: string;
-  username: string;
-  rating: number;
-  date: string;
-  verified: boolean;
-  text: string;
-  images?: string[];
-  helpful: number;
-}
+import { useReviews } from "@/hooks/useReviews";
+import { ReviewModal } from "@/components/features/ReviewModal";
+import { PRODUCTS } from "@/constants/products";
 
 interface ReviewSectionProps {
   productId: string;
 }
 
 export const ReviewSection = ({ productId }: ReviewSectionProps) => {
-  const [reviews] = useState<Review[]>([
-    {
-      id: "1",
-      username: "ChaosKing92",
-      rating: 5,
-      date: "2026-02-05",
-      verified: true,
-      text: "Absolutely fire hoodie! The quality is insane and the graphics are even better in person. Fits oversized perfectly.",
-      helpful: 24
-    },
-    {
-      id: "2",
-      username: "StreetVibes",
-      rating: 5,
-      date: "2026-02-03",
-      verified: true,
-      text: "Been waiting for this drop and it did NOT disappoint. The fabric feels premium and the neon details glow perfectly under UV light.",
-      helpful: 18
-    },
-    {
-      id: "3",
-      username: "DarkAesthetics",
-      rating: 4,
-      date: "2026-01-31",
-      verified: true,
-      text: "Love the design but wish the sleeves were a bit longer. Overall solid purchase though, gets compliments everywhere.",
-      helpful: 12
-    }
-  ]);
+  const { reviews, averageRating, submitting, submitReview, markHelpful } =
+    useReviews(productId);
+  const [showModal, setShowModal] = useState(false);
 
-  const averageRating = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+  const product = PRODUCTS.find((p) => p.id === productId);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -74,7 +40,10 @@ export const ReviewSection = ({ productId }: ReviewSectionProps) => {
             <span className="text-gray-500">({reviews.length} reviews)</span>
           </div>
         </div>
-        <button className="bg-chaos-purple hover:bg-chaos-red px-6 py-3 rounded-lg font-bold transition-all">
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-chaos-purple hover:bg-chaos-red px-6 py-3 rounded-lg font-bold transition-all"
+        >
           Write Review
         </button>
       </div>
@@ -97,15 +66,18 @@ export const ReviewSection = ({ productId }: ReviewSectionProps) => {
                   <div className="flex items-center gap-1">
                     {renderStars(review.rating)}
                   </div>
-                  <span className="text-xs text-gray-500">{review.date}</span>
+                  <span className="text-xs text-gray-500">{review.created_at}</span>
                 </div>
               </div>
             </div>
 
-            <p className="text-gray-300 mb-3 leading-relaxed">{review.text}</p>
+            <p className="text-gray-300 mb-3 leading-relaxed">{review.comment}</p>
 
             <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-chaos-purple transition-colors">
+              <button
+                onClick={() => markHelpful(review.id)}
+                className="flex items-center gap-2 text-sm text-gray-400 hover:text-chaos-purple transition-colors"
+              >
                 <ThumbsUp className="w-4 h-4" />
                 Helpful ({review.helpful})
               </button>
@@ -113,6 +85,16 @@ export const ReviewSection = ({ productId }: ReviewSectionProps) => {
           </div>
         ))}
       </div>
+
+      {/* Review Modal */}
+      <ReviewModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        productId={productId}
+        productName={product?.name ?? "Product"}
+        onSubmit={submitReview}
+        submitting={submitting}
+      />
     </div>
   );
 };

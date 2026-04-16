@@ -1,6 +1,12 @@
 import chaosBearLogo from "@/assets/chaos-bear-logo.jpg";
 
-export const HeroSection = () => {
+interface HeroSectionProps {
+  headline?: string;
+  subtitle?: string;
+  urgencyLabel?: string;
+}
+
+export const HeroSection = ({ headline, subtitle, urgencyLabel }: HeroSectionProps) => {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -29,7 +35,7 @@ export const HeroSection = () => {
         {/* CHAOS Text with Dripping Effect */}
         <div className="relative mb-6">
           <h1 className="font-chaos text-7xl md:text-9xl neon-text-red tracking-wider relative inline-block">
-            CHAOS
+            {headline || "CHAOS"}
             {/* Dripping SVG Effect */}
             <svg className="absolute -bottom-8 left-0 w-full h-16 opacity-80" viewBox="0 0 400 60" preserveAspectRatio="none">
               <defs>
@@ -55,9 +61,16 @@ export const HeroSection = () => {
         </div>
 
         {/* Subtitle */}
-        <p className="font-neon text-xl md:text-3xl neon-text-purple tracking-[0.3em] mb-12">
-          BRACE THE WILD
+        <p className="font-neon text-xl md:text-3xl neon-text-purple tracking-[0.3em] mb-4">
+          {subtitle || "BRACE THE WILD"}
         </p>
+
+        {/* Dynamic urgency label from traffic source */}
+        {urgencyLabel && (
+          <p className="text-chaos-red font-bold text-sm tracking-wider mb-8 animate-pulse">
+            {urgencyLabel}
+          </p>
+        )}
 
         {/* Description */}
         <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed">

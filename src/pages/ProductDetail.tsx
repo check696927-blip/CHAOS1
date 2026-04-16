@@ -22,9 +22,12 @@ import {
   Package,
   Shield,
   RefreshCw,
+  Ruler,
 } from "lucide-react";
 
 import { ProductVariant } from "@/types";
+import { SizeGuideModal } from "@/components/features/SizeGuideModal";
+import { BundleSection } from "@/engines/BundleSection";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +42,7 @@ const ProductDetail = () => {
     product?.variants?.[0] || null
   );
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
@@ -246,6 +250,17 @@ const ProductDetail = () => {
                     </button>
                   ))}
                 </div>
+
+                {/* Size Guide Trigger */}
+                {product.sizeGuide && (
+                  <button
+                    onClick={() => setShowSizeGuide(true)}
+                    className="flex items-center gap-2 text-sm text-chaos-purple hover:text-chaos-red transition-colors mt-2"
+                  >
+                    <Ruler className="w-4 h-4" />
+                    Size Guide
+                  </button>
+                )}
               </div>
             )}
 
@@ -323,8 +338,20 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        <BundleSection productId={product.id} />
+
         <ReviewSection productId={product.id} />
       </div>
+
+      {/* Size Guide Modal */}
+      {product.sizeGuide && (
+        <SizeGuideModal
+          open={showSizeGuide}
+          onClose={() => setShowSizeGuide(false)}
+          sizeGuide={product.sizeGuide}
+          productName={product.name}
+        />
+      )}
 
       {/* FOOTER */}
       <footer className="border-t border-chaos-red/30 bg-chaos-dark py-12 text-center">

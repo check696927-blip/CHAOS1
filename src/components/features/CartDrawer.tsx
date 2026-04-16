@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { PRODUCTS } from "@/constants/products";
 import { useCurrency } from "@/lib/currency";
 import { X, Trash2, Plus, Minus, Truck } from "lucide-react";
+import { UpsellSection } from "@/engines/UpsellSection";
 
 const safeNum = (v: unknown) => {
   const n = Number(v);
@@ -289,6 +290,8 @@ export const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                   })}
               </div>
             </div>
+
+            <UpsellSection />
 
             <div className="p-6 border-t border-pink-500/20 space-y-4">
               {!shippingProgress.qualified && (
