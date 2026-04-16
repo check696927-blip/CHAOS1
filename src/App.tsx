@@ -19,6 +19,7 @@ import SharedWishlist from "./pages/SharedWishlist";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import Success from "./pages/Success";
+import MiniStore from "./pages/MiniStore";
 
 // ✅ SAFE WRAPPER (prevents Zustand crash issues)
 function CartNotificationWrapper() {
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/quiz" element={<StyleQuiz />} />
           <Route path="/wishlist/:id" element={<SharedWishlist />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/mini-store" element={<MiniStore />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </TooltipProvider>
