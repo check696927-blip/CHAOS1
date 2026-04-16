@@ -10,11 +10,13 @@ import { InteractionEffects } from "@/components/features/InteractionEffects";
 import { IntensityControl } from "@/components/features/IntensityControl";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useInteractionEffects } from "@/hooks/useInteractionEffects";
+import { useLandingContext } from "@/hooks/useLandingContext";
 import { PRODUCTS } from "@/constants/products";
 
 const Index = () => {
   const { toggleItem, isInWishlist } = useWishlist();
   const { effects, settings, updateSettings } = useInteractionEffects();
+  const landing = useLandingContext();
   const [showPopup, setShowPopup] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
 
@@ -45,7 +47,11 @@ const Index = () => {
       <Header />
 
       {/* Hero Section */}
-      <HeroSection />
+      <HeroSection
+        headline={landing.headline}
+        subtitle={landing.subtitle}
+        urgencyLabel={landing.urgencyLabel}
+      />
 
       {/* Jump directly to NEW DROPS */}
       <div id="new-drops" className="scroll-mt-20"></div>

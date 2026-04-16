@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, CreditCard, Truck, MapPin } from "lucide-rea
 import { useCurrency } from "@/lib/currency";
 import { calculateCartTotals, calculateShipping, validateCartStock } from "@/lib/cart";
 import { PRODUCTS } from "@/constants/products";
+import { usePaymentValidation } from "@/hooks/usePaymentValidation";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -30,6 +31,8 @@ const Checkout = () => {
 
   const [shippingMethod, setShippingMethod] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("card");
+
+  const paymentCheck = usePaymentValidation(paymentMethod as "card" | "paypal" | "google");
 
   const { subtotal, discount, total } = calculateCartTotals(items);
   const selectedShippingCost = calculateShipping(total, shippingMethod as 'standard' | 'express' | 'overnight');
@@ -304,6 +307,28 @@ const Checkout = () => {
                     </div>
                   </div>
                 </RadioGroup>
+
+                {/* Payment validation warnings */}
+                {!paymentCheck.isValid && (
+                  <div className="mt-3 space-y-1">
+                    {paymentCheck.errors.map((err, i) => (
+                      <p key={i} className="text-red-400 text-xs flex items-center gap-1">
+                        <span className="w-1 h-1 bg-red-400 rounded-full" />
+                        {err}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {paymentCheck.warnings.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {paymentCheck.warnings.map((w, i) => (
+                      <p key={i} className="text-yellow-400 text-xs flex items-center gap-1">
+                        <span className="w-1 h-1 bg-yellow-400 rounded-full" />
+                        {w}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

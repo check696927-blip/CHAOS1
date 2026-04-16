@@ -35,6 +35,10 @@ import {
   ga4Integration,
   tiktokIntegration,
 } from "@/integrations";
+import { initHeatmap } from "@/integrations/heatmap";
+
+// Engines
+import { warmPricingCache, recordDemandSignal } from "@/engines/pricingEngine";
 
 // Hooks (cart sync runs its own lifecycle)
 import { useCartSync } from "@/hooks/useCartSync";
@@ -100,6 +104,15 @@ export function useCommerceIntelligence(): void {
       if (flags.abandonedCart()) {
         resetAbandonTimer();
       }
+
+      // Record demand signal for pricing engine
+      if (flags.pricing()) {
+        const items = useCartStore.getState().items;
+        const lastItem = items[items.length - 1];
+        if (lastItem) {
+          recordDemandSignal(lastItem.id, "cartAdd");
+        }
+      }
     };
 
     window.addEventListener("cart:add", handler);
@@ -146,4 +159,30 @@ export function useCommerceIntelligence(): void {
 
     return cleanup;
   }, [user?.id]);
+
+  // -------------------------------------------------------------------
+  // 7. Heatmap — Microsoft Clarity
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    initHeatmap(); // internally checks flag
+  }, []);
+
+  // -------------------------------------------------------------------
+  // 8. AI Pricing — warm cache on startup
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    warmPricingCache(); // internally checks flag
+  }, []);
+
+  // -------------------------------------------------------------------
+  // 9. Route-based demand signals for pricing engine
+  // -------------------------------------------------------------------
+  useEffect(() => {
+    if (!flags.pricing()) return;
+
+    const productMatch = location.pathname.match(/^\/product\/(.+)$/);
+    if (productMatch) {
+      recordDemandSignal(productMatch[1], "view");
+    }
+  }, [location.pathname]);
 }
