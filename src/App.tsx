@@ -5,6 +5,10 @@ import { AddToCartNotification } from "@/components/features/AddToCartNotificati
 import { Sonner } from "@/components/ui/sonner";
 import { useCartStore, selectNotification } from "@/store/cart";
 
+// Commerce Intelligence Layer
+import { useCommerceIntelligence } from "@/hooks/useCommerceIntelligence";
+import { LiveFeed } from "@/components/features/LiveFeed";
+
 import Index from "./pages/Index";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
@@ -42,30 +46,40 @@ function CartNotificationWrapper() {
   }
 }
 
+// Inner component: placed inside BrowserRouter for useLocation() access
+function AppInner() {
+  useCommerceIntelligence();
+
+  return (
+    <TooltipProvider>
+      <CartNotificationWrapper />
+      <LiveFeed />
+      <Sonner />
+
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/rewards" element={<Rewards />} />
+        <Route path="/referrals" element={<Referrals />} />
+        <Route path="/punchcard" element={<PunchCard />} />
+        <Route path="/quiz" element={<StyleQuiz />} />
+        <Route path="/wishlist/:id" element={<SharedWishlist />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </TooltipProvider>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <TooltipProvider>
-        <CartNotificationWrapper />
-        <Sonner />
-
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/success" element={<Success />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/rewards" element={<Rewards />} />
-          <Route path="/referrals" element={<Referrals />} />
-          <Route path="/punchcard" element={<PunchCard />} />
-          <Route path="/quiz" element={<StyleQuiz />} />
-          <Route path="/wishlist/:id" element={<SharedWishlist />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
+      <AppInner />
     </BrowserRouter>
   );
 }
