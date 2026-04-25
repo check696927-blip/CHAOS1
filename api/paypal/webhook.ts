@@ -1,31 +1,33 @@
-export default async function handler(req, res) {
-  const event = req.body;
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { supabaseAdmin } from "../utils/supabaseAdmin";
+import { sendOrderEmail } from "../utils/sendEmail";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") return res.status(405).end();
 
   try {
-    if (event.event_type === "CHECKOUT.ORDER.APPROVED") {
-      const orderID = event.resource.id;
+    const event = req.body;
 
-      // Capture payment (server-side)
-      const captureRes = await fetch(
-        `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Basic " +
-              Buffer.from(
-                process.env.PAYPAL_CLIENT_ID +
-                  ":" +
-                  process.env.PAYPAL_SECRET
-              ).toString("base64"),
-          },
-        }
-      );
+    // ⚠️ PayPal: you should verify signature in production
+    if (event.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+      const data = event.resource;
 
-      const captureData = await captureRes.json();
+      const email = data.payer?.email_address;
+      const amount = data.amount?.value;
+      const orderId = data.id;
 
-      // TODO: Save to database here (Supabase)
-      console.log("Captured:", captureData);
+      // 1. Save order
+      const { error } = await supabaseAdmin.from("orders").insert({
+        provider: "paypal",
+        provider_order_id: orderId,
+        email,
+        amount
+      });
+
+      if (error) throw error;
+
+      // 2. Send email
+      await sendOrderEmail(email, amount);
     }
 
     res.status(200).json({ received: true });
