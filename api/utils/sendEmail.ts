@@ -7,14 +7,14 @@ export async function sendOrderEmail(email: string, amount: string) {
     await resend.emails.send({
       from: "CHAOS <onboarding@resend.dev>",
       to: email,
-      subject: "Order Confirmed",
+      subject: "Payment Confirmed ✅",
       html: `
-        <h1>Payment Successful</h1>
-        <p>Your order is confirmed.</p>
-        <p><strong>Total:</strong> $${amount}</p>
+        <h1>Thank you for your purchase</h1>
+        <p>Your payment was successful.</p>
+        <p><strong>Amount:</strong> $${amount}</p>
       `,
     });
   } catch (err) {
-    console.error("Email error:", err);
+    console.error("Email failed:", err);
   }
 }
